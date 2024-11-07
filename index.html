@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>doBetter4perfection</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        /* Full-screen styling for the canvas */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Style for the popup modal */
+        .popup {
+            position: absolute;
+            padding: 20px;
+            background: radial-gradient(circle, rgba(0,0,0,1) 30%, rgba(255,255,255,1) 53%, rgba(255,255,255,1) 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+            color: red;
+            transition: font-size 0.3s ease;
+            
+        }
+
+        .popup .close-button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: transparent;
+            color: yellow;
+            font-size: 1.5em;
+            font-style: oblique;
+            cursor: pointer;
+            border: none;
+            background-color: red;
+            border-radius: 100px;
+        }
+
+        /* Styling for the arrow inside the popup */
+        .arrow {
+            font-size: 50px;
+            color: red;
+            animation: pulse 1s infinite;
+            opacity: 0.8;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Pulsating animation */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas element to display the filtered webcam feed -->
+    <canvas id="canvas"></canvas>
+
+    <script>
+        let popupCount = 1;
+        let liquifyOffset = 0; // Initial offset for the liquify effect
+
+        // List of messages for the popups
+const messages = [
+    "This doesn’t quite align.", "Are you certain this conforms?", "You’re expected to understand.",
+    "Almost acceptable, but lacking.", "This isn’t entirely approved.", "You’re deviating slightly.",
+    "There’s an unspoken standard.", "Closer, but not quite compliant.", "Does this uphold the ideal?",
+    "Not entirely in line with expectations.", "It seems… misaligned.", "Does this meet the collective vision?",
+    "Something essential is missing.", "Reflect carefully on this choice.", "Nearly acceptable… almost.",
+    "Deviation is noticed.", "Do you understand what’s required?", "A hint of correction is needed.",
+    "Think again about this path.", "This feels… almost transgressive.", "Not fully embraced by the whole.",
+    "Unclear adherence here.", "This lacks full alignment.", "Adjustments may be necessary.",
+    "Barely within acceptable limits.", "Do you sense the oversight here?", "Almost… correct.",
+    "Does this honor the guidelines?", "Not entirely loyal to the form.", "You’re nearing cohesion… keep at it.",
+    "This drifts slightly from the center.", "The framework is strict for a reason.", "Do you fully understand the boundaries?",
+    "There’s a subtle misstep here.", "Closer, but the standard looms.", "Does this show full commitment?",
+    "Not yet the prescribed form.", "We sense a minor discord here.", "Almost uniform… but not entirely.",
+    "This requires deeper alignment.", "Deviation must be reconsidered.", "It doesn’t reflect the full ideal.",
+    "This falls short of expectation.", "More cohesion is anticipated.", "Check your alignment carefully.",
+    "It’s drifting, ever so slightly.", "This lacks the full rigor expected.", "Only partial adherence noted.",
+    "A closer fit would be advised.", "Are you reaching full conformity?", "Does this follow the correct lines?",
+    "Perfection is assumed here.", "This choice seems uncertain.", "The ideal is not quite reached.",
+    "There’s a sliver of divergence.", "Closer inspection may reveal flaws.", "Precision is key in every step.",
+    "This could benefit from further thought.", "Uniformity is preferred here.", "It’s almost… but not precise.",
+    "Seek fuller alignment.", "The expectation isn’t quite met.", "We encourage a closer review.",
+    "Your decision shows a slight variance.", "Conformity is… close, but elusive.", "Reflect on this choice carefully.",
+    "The full standard requires more.", "This still feels incomplete.", "Consider adjusting for clarity.",
+    "Deviation is faint but present.", "This is not fully synchronized.", "The essence isn’t fully captured.",
+    "A touch more consistency is ideal.", "This slightly disrupts the uniformity.", "Do you sense the variation?",
+    "Almost indistinguishable, but noticeable.", "A clearer path may be advisable.", "It’s not entirely attuned.",
+    "More refinement may be warranted.", "Observe the subtle misalignment.", "Does this follow our prescribed path?",
+    "It’s still just a bit off-mark.", "Expectations suggest slight revisions.", "Stay within prescribed bounds.",
+    "Does this reflect full coherence?", "Convergence is still anticipated.", "It lacks a final touch of unity.",
+    "Proceed, but with slight reservation.", "A bit more alignment needed.", "Not entirely harmonious.",
+    "Further immersion is encouraged.", "Strive for uniformity in approach.", "Not yet fully integrated.",
+    "Seek cohesion in every detail.", "Almost adherent, but not quite.", "Alignment appears fractional.",
+    "Anticipate a closer examination.", "Unity is paramount here.", "Reflect on adherence to form.",
+    "Does this bring you closer to the ideal?", "There’s something yet to be aligned.", "You may need to reconsider this.",
+    "This feels slightly outside the structure.", "Almost… but still falls short.", "Do you see the slight variance?",
+    "This needs closer alignment.", "There’s a minor gap here.", "Consider more careful conformity.",
+    "Not quite… yet.", "Harmony is not fully achieved.", "Are you aware of the expectation?",
+    "It may need further adherence.", "This echoes a subtle misalignment.", "Perfection requires slight adjustments.",
+    "The vision requires full consistency.", "Have you thought this through entirely?", "The standard remains slightly out of reach.",
+    "There’s a sliver of nonconformity here.", "This feels a degree off-balance.", "Precision remains the goal.",
+    "Reconsider the elements involved.", "This verges on misalignment.", "Keep consistency as the guiding principle.",
+    "Do you sense the slight discord?", "Closer fidelity is expected.", "It’s almost in line… almost.",
+    "Seek alignment at every level.", "This could be more carefully executed.", "It’s not yet a perfect fit.",
+    "Consider a tighter integration.", "A bit more discipline might be needed.", "Almost harmonious, but lacking unity.",
+    "Have you fully absorbed the guidelines?", "This may need slight refinement.", "Does this truly reflect the standard?",
+    "Harmony requires finer detail.", "Is this the most precise approach?", "Almost a reflection of the ideal.",
+    "Take care with each aspect.", "This lacks a measure of finality.", "Full cohesion hasn’t yet been reached.",
+    "Does this hold up to the scrutiny?", "Consider the subtle expectations.", "The standard is closer than it appears.",
+    "We expect something more exacting.", "Almost in full alignment.", "This could use a touch more uniformity.",
+    "Are you observing every guideline?", "A hint of divergence remains.", "There’s a slight inconsistency here.",
+    "Precision is the measure of unity.", "Not yet the clearest representation.", "Seek alignment in each choice.",
+    "Does this meet the spirit of conformity?", "This would benefit from another glance.", "A hint more cohesion is required.",
+    "There’s an unspoken order to uphold.", "Uniformity feels slightly interrupted.", "Strive to reach full adherence.",
+    "Almost indistinguishable, but not entirely.", "Reflect on the subtle standards.", "A minor adjustment could solidify it.",
+    "It’s closer, but lacks depth.", "Are you reaching the fullest cohesion?", "Only slight variations remain.",
+    "Consider the invisible framework.", "Harmony calls for unwavering commitment.", "This aligns partially but not fully.",
+    "The unity of detail is paramount.", "Do you perceive the deviation?", "Refinement is always possible.",
+    "Every choice counts toward unity.", "This doesn’t quite echo the whole.", "Conformity should be absolute.",
+    "Have you seen every aspect fully?", "The framework isn’t fully embraced.", "Are you certain this conforms entirely?",
+    "A more seamless alignment is ideal.", "The vision demands a bit more care.", "This requires just a bit more consistency.",
+    "Every step must reflect cohesion.", "The ideal still lies slightly beyond.", "A closer adherence would benefit this.",
+    "Precision in every part is expected.", "Do you sense the variation?", "Refinement is encouraged throughout.",
+    "Strive for unyielding alignment.", "Is this in line with the higher standard?", "Deviation, though minor, is noted.",
+    "Have you fully captured the ideal?", "This feels a touch out of focus.", "Closer alignment may reveal depth.",
+    "There’s a minor shift here.", "Seek the deepest form of unity.", "This still needs alignment with the whole.",
+    "A minor discord can be sensed.", "Does this resonate with the full vision?", "The expectation remains just beyond reach.",
+    "Reflect on full integration.", "Not quite cohesive… but close."
+];
+
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { frameRate: { max: 1 } } 
+                });
+                
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+
+                // When video starts, draw frames to the canvas
+                video.onplaying = () => {
+                    const canvas = document.getElementById('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    function draw() {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        applyLiquifyEffect(ctx, canvas.width, canvas.height);
+                        applyBlackAndWhiteLineFilter(ctx, canvas.width, canvas.height);
+                        liquifyOffset += 1; // Move the offset for the next frame
+                    }
+
+                    // Set interval to draw frames at 1 FPS (1000ms / 1)
+                    setInterval(draw, 1000);
+                    showPopup();
+                };
+            } catch (error) {
+                console.error('Error accessing webcam:', error);
+            }
+        }
+
+        function applyBlackAndWhiteLineFilter(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                const lineEffect = avg > 128 ? 255 : 0;
+                data[i] = lineEffect;
+                data[i + 1] = lineEffect;
+                data[i + 2] = lineEffect;
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function applyLiquifyEffect(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const distortedData = new Uint8ClampedArray(data);
+
+            const waveAmplitude = 10;
+            const waveFrequency = 0.02;
+
+            for (let y = 0; y < height; y++) {
+                const offsetX = Math.sin((y + liquifyOffset) * waveFrequency) * waveAmplitude;
+                for (let x = 0; x < width; x++) {
+                    const srcIndex = ((y * width) + x) * 4;
+                    const destX = Math.min(width - 1, Math.max(0, x + offsetX | 0));
+                    const destIndex = ((y * width) + destX) * 4;
+
+                    distortedData[destIndex] = data[srcIndex];
+                    distortedData[destIndex + 1] = data[srcIndex + 1];
+                    distortedData[destIndex + 2] = data[srcIndex + 2];
+                    distortedData[destIndex + 3] = data[srcIndex + 3];
+                }
+            }
+
+            ctx.putImageData(new ImageData(distortedData, width, height), 0, 0);
+        }
+
+        function showPopup() {
+            document.querySelectorAll('.popup').forEach(el => el.remove());
+            for (let i = 0; i < popupCount; i++) {
+                const popup = document.createElement('div');
+                popup.className = 'popup';
+                
+                // Select a random message
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                
+                popup.innerHTML = `
+                    <div class="arrow">⬇</div>
+                    <p>${randomMessage}</p>
+                    <button class="close-button" onclick="closePopup()">(:)</button>
+                `;
+
+                const maxX = window.innerWidth - 200;
+                const maxY = window.innerHeight - 100;
+                const randomX = Math.floor(Math.random() * maxX);
+                const randomY = Math.floor(Math.random() * maxY);
+
+                popup.style.left = `${randomX}px`;
+                popup.style.top = `${randomY}px`;
+
+                document.body.appendChild(popup);
+
+                // Start the popup movement with jitter and font fluctuation
+                movePopupWithJitter(popup);
+            }
+        }
+
+        function movePopupWithJitter(popup) {
+    // Randomly move the popup within the viewport with added jitter
+    let directionX = Math.random() < 0.5 ? 1 : -1;
+    let directionY = Math.random() < 0.5 ? 1 : -1;
+
+    setInterval(() => {
+        // Get current position
+        const rect = popup.getBoundingClientRect();
+        let x = rect.left + directionX * 5 + (Math.random() - 0.5) * 4; // Add jitter
+        let y = rect.top + directionY * 5 + (Math.random() - 0.5) * 4;  // Add jitter
+
+        // Reverse direction if it hits the edge of the viewport
+        if (x <= 0 || x + rect.width >= window.innerWidth) directionX *= -1;
+        if (y <= 0 || y + rect.height >= window.innerHeight) directionY *= -1;
+
+        // Move the popup with slight random jitter
+        popup.style.left = `${x}px`;
+        popup.style.top = `${y}px`;
+    }, 200); // Update every 100 milliseconds for smooth movement
+}
+
+        function closePopup() {
+            document.querySelectorAll('.popup').forEach(el => el.remove());
+            popupCount *= 2;
+            setTimeout(showPopup, 100);
+        }
+
+        window.addEventListener('load', startWebcam);
+    </script>
+</body>
+</html>
