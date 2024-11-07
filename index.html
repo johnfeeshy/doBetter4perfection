@@ -155,9 +155,15 @@ const messages = [
 ];
 
         async function startWebcam() {
+    // Stop any existing webcam streams
+    if (window.currentStream) {
+        window.currentStream.getTracks().forEach(track => track.stop());
+    }
+
     try {
         // Request webcam access
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        window.currentStream = stream; // Store the stream globally so we can stop it later
         
         const video = document.createElement('video');
         video.srcObject = stream;
