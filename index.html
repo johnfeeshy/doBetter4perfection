@@ -155,37 +155,37 @@ const messages = [
 ];
 
         async function startWebcam() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { frameRate: { max: 1 } } 
-                });
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.play();
+    try {
+        // Request webcam access
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
 
-                // When video starts, draw frames to the canvas
-                video.onplaying = () => {
-                    const canvas = document.getElementById('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+        // When video starts, draw frames to the canvas
+        video.onplaying = () => {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
 
-                    function draw() {
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        applyLiquifyEffect(ctx, canvas.width, canvas.height);
-                        applyBlackAndWhiteLineFilter(ctx, canvas.width, canvas.height);
-                        liquifyOffset += 1; // Move the offset for the next frame
-                    }
-
-                    // Set interval to draw frames at 1 FPS (1000ms / 1)
-                    setInterval(draw, 1000);
-                    showPopup();
-                };
-            } catch (error) {
-                console.error('Error accessing webcam:', error);
+            function draw() {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                applyLiquifyEffect(ctx, canvas.width, canvas.height);
+                applyBlackAndWhiteLineFilter(ctx, canvas.width, canvas.height);
+                liquifyOffset += 1; // Move the offset for the next frame
             }
-        }
+
+            // Set interval to draw frames at 1 FPS (1000ms / 1)
+            setInterval(draw, 1000);
+            showPopup();
+        };
+    } catch (error) {
+        console.error('Error accessing webcam:', error);
+    }
+}
+        
 
         function applyBlackAndWhiteLineFilter(ctx, width, height) {
             const imageData = ctx.getImageData(0, 0, width, height);
